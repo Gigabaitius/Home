@@ -1,0 +1,269 @@
+/* ===== базовые и уже существующие стили (как в твоей последней версии) ===== */
+body {
+  background: linear-gradient(135deg, #d5baff, #ffe4f2);
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding-top: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.main-header {
+  display: flex; justify-content: space-between; align-items: center;
+  background: #aa66cc; color: white; padding: 15px 25px; width: 100%;
+  position: fixed; top: 0; left: 0; z-index: 100; box-sizing: border-box;
+}
+.logo { font-weight: bold; font-size: 20px; cursor: pointer; }
+.burger { position: relative; z-index: 2100; font-size: 24px; cursor: pointer; }
+.user-info { display: flex; align-items: center; gap: 10px; }
+.user-info .avatar { width: 30px; height: 30px; border-radius: 50%; }
+.notif { position: relative; margin-right: 12px; cursor: pointer; }
+.notif svg { width: 24px; height: 24px; fill: #fff; display: block; }
+.notif-badge {
+  position: absolute; top: -6px; right: -6px;
+  background: #e53935; color: #fff; font-size: 12px; line-height: 18px;
+  min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; text-align: center;
+}
+.btn { background: #aa66cc; color: #fff; border: none; border-radius: 10px; padding: 10px 14px; cursor: pointer; font-weight: 600; }
+.btn:hover { background: #8836b0; }
+.btn.btn-outline { background: transparent; color: #fff; border: 1px solid #fff; }
+.btn.btn-outline:hover { background: rgba(255,255,255,0.15); }
+.btn.btn-outline.danger { color: #d32f2f; border-color: #d32f2f; }
+.btn.btn-outline.danger:hover { background: #fde8e7; color: #d32f2f; }
+.btn-sm { padding: 6px 10px; font-size: 13px; }
+
+.side-menu {
+  position: fixed; top: 80px; left: 12px; background: #fff; border: 1px solid #ccc;
+  border-radius: 10px; padding: 10px; z-index: 2000; box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+.side-menu ul { list-style: none; margin: 0; padding: 0; }
+.side-menu li { padding: 8px 12px; cursor: pointer; color: #6f2dbd; }
+.side-menu li:hover { background: #f5e9ff; }
+.side-menu li.active { background: #f5e9ff; color: #6f2dbd; font-weight: 600; border-radius: 8px; }
+
+.content { padding: 20px; text-align: center; }
+.content h2 { color: #333; font-size: 22px; margin-bottom: 20px; }
+
+.days { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+.days button {
+  background: white; border: 2px solid #aa66cc; color: #aa66cc; border-radius: 12px;
+  padding: 12px 20px; font-size: 16px; cursor: pointer; transition: .2s;
+}
+.days button:hover { background: #f3dbff; }
+
+.advice-box {
+  background: white; border-left: 6px solid #aa66cc; padding: 15px 20px; border-radius: 12px;
+  margin: 20px auto; width: 90%; max-width: 500px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center;
+}
+.advice-box h3 { margin: 0; color: #aa66cc; }
+#advice-text { font-size: 16px; color: #444; }
+
+.tasks-panel {
+  background: #fff; border-radius: 14px; box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  padding: 16px 18px; margin: 20px auto; width: 95%; max-width: 720px; text-align: left;
+}
+.tasks-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+.tasks-header h3 { margin: 0; color: #6f2dbd; }
+.tasks-progress { color: #6f2dbd; font-weight: 600; }
+.tasks-list { list-style: none; margin: 0; padding: 0; }
+.task-item {
+  display: grid; grid-template-columns: 140px 1fr auto;
+  gap: 12px; align-items: center; padding: 10px 8px; border-bottom: 1px dashed #e9d8fd;
+}
+.task-time { color: #7a7a7a; white-space: nowrap; }
+.task-text { color: #333; }
+.task-done .task-text { text-decoration: line-through; color: #9a9a9a; }
+.task-check { transform: scale(1.2); cursor: pointer; }
+.tasks-finished { margin-top: 12px; color: #169c5b; font-weight: 600; }
+
+.daily-tasks {
+  background: #fff; border-radius: 14px; box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  padding: 16px 18px; margin: 20px auto; width: 95%; max-width: 960px; text-align: left;
+}
+.task-form { display: grid; grid-template-columns: 1fr 180px 140px; gap: 10px; margin-bottom: 14px; }
+.task-form input, .task-form select { border: 1px solid #ddd; border-radius: 10px; padding: 10px; font-size: 14px; }
+.task-form button { background: #aa66cc; color: #fff; border: none; border-radius: 10px; padding: 10px 14px; cursor: pointer; font-weight: 600; }
+.task-form button:hover { background: #8836b0; }
+.task-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.task-col h4 { color: #6f2dbd; margin: 8px 0; }
+.task-list { list-style: none; margin: 0; padding: 0; }
+.task-row {
+  display: grid; grid-template-columns: 28px 1fr auto;
+  align-items: center; gap: 10px; padding: 8px 6px; border-bottom: 1px dashed #e9d8fd;
+}
+.task-row .who { font-size: 12px; color: #6f2dbd; background: #f3e8ff; padding: 2px 8px; border-radius: 999px; }
+.task-row.done .text { text-decoration: line-through; color: #9a9a9a; }
+.task-row input[type="checkbox"] { transform: scale(1.2); cursor: pointer; }
+
+.expenses {
+  background: #fff; border-radius: 14px; box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  padding: 16px 18px; margin: 20px auto; width: 95%; max-width: 1100px; text-align: left;
+}
+/* ... остальные стили «Траты», «Бюджет», «Подарки» — как в твоей прошлой версии ... */
+
+.budget { background: #fff; border-radius: 14px; box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  padding: 16px 18px; margin: 20px auto; width: 95%; max-width: 1100px; text-align: left; }
+/* ... (остальное по бюджету как было) ... */
+
+.gifts { background: #fff; border-radius: 14px; box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  padding: 16px 18px; margin: 20px auto; width: 95%; max-width: 1100px; text-align: left; }
+/* ... (остальное по подаркам как было) ... */
+
+/* ===== Новый раздел: Нужно сделать (Славик) ===== */
+.personal {
+  background: #fff; border-radius: 14px; box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  padding: 16px 18px; margin: 20px auto; width: 95%; max-width: 720px; text-align: left;
+}
+.p-form { display: grid; grid-template-columns: 1fr 170px 140px; gap: 10px; margin-bottom: 14px; }
+.p-form input { border: 1px solid #ddd; border-radius: 10px; padding: 10px; font-size: 14px; }
+.p-list { list-style: none; margin: 0; padding: 0; }
+.p-row {
+  display: grid; grid-template-columns: 28px 1fr 160px 28px;
+  align-items: center; gap: 10px; padding: 8px 6px; border-bottom: 1px dashed #e9d8fd;
+}
+.p-row .p-text { color: #333; }
+.p-row .p-due { font-size: 13px; color: #555; text-align: right; white-space: nowrap; }
+.p-row .p-del { color: #d32f2f; font-weight: 700; cursor: pointer; text-align: center; }
+.p-row input[type="checkbox"] { transform: scale(1.2); cursor: pointer; }
+.p-row.done .p-text { text-decoration: line-through; color: #9a9a9a; }
+.overdue { color: #d32f2f; font-weight: 600; }
+
+.hidden { display: none; }
+/* ===== Общие карточки (card) ===== */
+.card {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.05);
+}
+.card-title { color:#7a57c6; font-size:13px; margin-bottom:6px; }
+.card-value { font-weight:700; font-size:20px; color:#333; }
+
+/* ===== Раздел: Хочу подарить ===== */
+.gifts {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  padding: 16px 18px;
+  margin: 20px auto;
+  width: 95%;
+  max-width: 1100px;
+  text-align: left;
+}
+.g-header h3 { margin: 0 0 8px; color:#6f2dbd; }
+.g-note { color:#666; margin-bottom: 12px; }
+
+.g-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.g-add .g-form {
+  display: grid;
+  grid-template-columns: 1fr 180px 1fr 120px;
+  gap: 10px;
+  margin: 12px 0;
+}
+.g-form input {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 14px;
+}
+
+.g-list .block-title,
+.g-done .block-title { margin-top: 6px; }
+
+.g-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  border: 1px dashed #ead9ff;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+.g-meta { color:#666; margin: 4px 0 8px; }
+
+.g-progress {
+  height: 8px;
+  background: #f1e7ff;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.g-progress > div { height: 100%; background: #aa66cc; }
+
+.g-nums {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color:#555;
+  margin-top: 8px;
+}
+
+.g-actions { display: flex; gap: 8px; align-items: center; }
+.g-actions input {
+  width: 180px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 8px;
+}
+/* ===== Аккордеоны (общие) ===== */
+.accordion {
+  width: 95%;
+  max-width: 900px;
+  margin: 16px auto;
+  text-align: left;
+}
+.accordion details {
+  background: #fff;
+  border: 1px solid #ead9ff;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.05);
+}
+.accordion summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: #6f2dbd;
+  outline: none;
+}
+.accordion .acc-body {
+  margin-top: 10px;
+  color: #333;
+}
+.accordion ul { margin: 8px 0 0 18px; }
+
+/* Список зон по дням */
+.zones-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+.zones-list li {
+  padding: 6px 0;
+  border-bottom: 1px dashed #ead9ff;
+}
+.zones-list li span {
+  display: inline-block;
+  min-width: 120px;
+  color: #7a7a7a;
+}
+
+/* Контейнер памятки */
+.cleaning {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  padding: 16px 18px;
+  margin: 20px auto;
+  width: 95%;
+  max-width: 980px;
+  text-align: left;
+}
+.cleaning h3 { margin: 0 0 10px; color:#6f2dbd; }

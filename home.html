@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Дом</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="main-header">
+    <div class="burger" id="burgerBtn" aria-label="Меню" role="button" tabindex="0">☰</div>
+
+    <!-- Лого: кликабельно на "Дом" -->
+    <div class="logo" id="logoBtn" role="button" tabindex="0" aria-label="Дом — на главную">Дом</div>
+
+    <div class="user-info">
+      <!-- 🔔 Уведомления -->
+      <div class="notif" id="notifBell" title="Задачи" role="button" tabindex="0">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 22a2 2 0 0 0 2-2H10a2 2 0 0 0 2 2Zm6-6V11a6 6 0 1 0-12 0v5l-2 2v1h16v-1l-2-2Z"/>
+        </svg>
+        <span id="notifBadge" class="notif-badge hidden">0</span>
+      </div>
+
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Sample_User_Icon.png/100px-Sample_User_Icon.png" alt="avatar" class="avatar" />
+      <span id="username"></span>
+
+      <button id="logoutBtn" class="btn btn-outline btn-sm hidden" title="Выйти">Выход</button>
+    </div>
+  </header>
+
+  <!-- Боковое меню -->
+  <nav id="side-menu" class="side-menu hidden" aria-label="Боковое меню">
+    <ul id="menu-list">
+      <li id="menu-home">Дом</li>
+      <li id="menu-daily">Задачи на день</li>
+      <li id="menu-expenses">Траты</li>
+      <li id="menu-budget">Бюджет</li>
+      <li id="menu-gifts">Хочу подарить</li>
+      <li id="menu-cleaning">Памятка по уборке</li>
+      <!-- динамический пункт добавляется в JS:
+           у Никоси — «Приём лекарств», у Славика — «Нужно сделать» -->
+    </ul>
+  </nav>
+
+  <main class="content">
+    <!-- Совет дня -->
+    <div id="advice-box" class="advice-box">
+      <h3>Совет дня ❤️</h3>
+      <p id="advice-text">Загрузка...</p>
+    </div>
+
+    <h2>Выбери день недели</h2>
+
+    <!-- Дни недели -->
+    <div class="days" id="days-list">
+      <button data-day="mon">Понедельник</button>
+      <button data-day="tue">Вторник</button>
+      <button data-day="wed">Среда</button>
+      <button data-day="thu">Четверг</button>
+      <button data-day="fri">Пятница</button>
+      <button data-day="sat">Суббота</button>
+      <button data-day="sun">Воскресенье</button>
+    </div>
+
+    <!-- Разворачиваемый список «Зоны уборки по дням» -->
+    <section id="zones-wrap" class="accordion">
+      <details open>
+        <summary>Зоны уборки по дням (для <span id="zones-user"></span>)</summary>
+        <ul id="zones-list" class="zones-list"></ul>
+      </details>
+    </section>
+
+    <!-- Панель задач выбранного дня -->
+    <section id="tasks-panel" class="tasks-panel hidden" aria-live="polite">
+      <div class="tasks-header">
+        <h3 id="tasks-title">Задачи</h3>
+        <div id="tasks-progress" class="tasks-progress">0 / 0</div>
+      </div>
+      <ul id="tasks-list" class="tasks-list"></ul>
+      <div id="tasks-finished" class="tasks-finished hidden">День выполнен ✅</div>
+    </section>
+
+    <!-- Раздел: Задачи на день -->
+    <section id="daily-tasks" class="daily-tasks hidden">
+      <h3>Задачи на сегодня</h3>
+      <form id="task-form" class="task-form" onsubmit="return addDailyTask()">
+        <input id="taskText" type="text" placeholder="Что нужно сделать?" required />
+        <select id="taskAssignee" required>
+          <option value="" disabled selected>Кому</option>
+          <option value="Никося">Никося</option>
+          <option value="Славик">Славик</option>
+        </select>
+        <button type="submit">Добавить</button>
+      </form>
+      <div class="task-columns">
+        <div class="task-col">
+          <h4>Мои задачи</h4>
+          <ul id="myTasks" class="task-list"></ul>
+        </div>
+        <div class="task-col">
+          <h4>Поставленные мной</h4>
+          <ul id="assignedByMe" class="task-list"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Раздел: Траты -->
+    <section id="expenses-section" class="expenses hidden">
+      <!-- твой блок «Траты» из предыдущей версии (оставлен без изменений) -->
+      <div class="exp-header">
+        <h3>Траты — панель за месяц</h3>
+        <div class="exp-month" id="expMonthLabel"></div>
+      </div>
+      <div class="exp-metrics">
+        <div class="card"><div class="card-title">Всего за месяц</div><div class="card-value" id="mTotal">—</div></div>
+        <div class="card"><div class="card-title">Обязательные оплачено</div><div class="card-value" id="mFixed">—</div></div>
+        <div class="card"><div class="card-title">Переменные расходы</div><div class="card-value" id="mVar">—</div></div>
+        <div class="card"><div class="card-title">«Лишние» траты</div><div class="card-value bad" id="mExtra">—</div></div>
+      </div>
+      <div class="exp-fixed">
+        <div class="block-title">Ежемесячные траты</div>
+        <table class="tbl">
+          <thead><tr><th>Категория</th><th>Сумма</th><th>Статус</th><th></th></tr></thead>
+          <tbody id="fixedTbody"></tbody>
+        </table>
+        <div class="hint">Нажми «Оплачено», чтобы зафиксировать расход в этом месяце. Можно отменить.</div>
+      </div>
+      <div class="exp-add">
+        <div class="block-title">Добавить расход</div>
+        <form id="expForm" class="exp-form" onsubmit="return addExpense()">
+          <input id="expAmount" type="number" step="0.01" min="0" placeholder="Сумма, ₽" required />
+          <input id="expCategory" type="text" list="expCats" placeholder="Категория" required />
+          <datalist id="expCats"></datalist>
+          <input id="expDate" type="date" required />
+          <input id="expNote" type="text" placeholder="Комментарий (необязательно)" />
+          <button type="submit">Добавить</button>
+        </form>
+      </div>
+      <div class="exp-last">
+        <div class="block-title">Последние расходы (текущий месяц)</div>
+        <ul id="lastList" class="last-list"></ul>
+      </div>
+      <div class="exp-breakdown">
+        <div class="block-title">По категориям</div>
+        <div id="breakdown" class="bars"></div>
+      </div>
+      <div class="exp-extra">
+        <div class="block-title">Подозрительно лишние</div>
+        <ul id="extraList" class="extra-list"></ul>
+        <div class="hint">Настраивается в коде (множество DISCRETIONARY_CATS).</div>
+      </div>
+    </section>
+
+    <!-- Раздел: Бюджет -->
+    <section id="budget-section" class="budget hidden">
+      <!-- твой блок «Бюджет» из предыдущей версии (оставлен без изменений) -->
+      <div class="budget-header">
+        <h3>Бюджет — план погашения долга</h3>
+        <div class="budget-month" id="budgetSummaryDate"></div>
+      </div>
+      <div class="budget-metrics">
+        <div class="card"><div class="card-title">Остаток долга</div><div class="card-value" id="bRemain">—</div></div>
+        <div class="card"><div class="card-title">Выплачено</div><div class="card-value" id="bPaid">—</div></div>
+        <div class="card">
+          <div class="card-title">Прогресс</div>
+          <div class="progress"><div id="bProgressFill"></div></div>
+          <div class="progress-label" id="bProgressLabel">—</div>
+        </div>
+        <div class="card"><div class="card-title">Плановая дата закрытия</div><div class="card-value" id="bFinish">—</div></div>
+      </div>
+      <div class="budget-start">
+        <div class="block-title">Начальный долг</div>
+        <div class="start-row">
+          <input id="bStartInput" type="number" step="1" min="0" placeholder="Сумма, ₽" />
+          <button class="btn" onclick="saveStartDebt()">Сохранить</button>
+          <button class="btn btn-outline" onclick="resetToPlan()">Сбросить к плану</button>
+          <button class="btn btn-outline danger" onclick="clearBudget()">Очистить всё</button>
+        </div>
+        <div class="hint">«Сбросить к плану» — подставит твой план. По умолчанию таблица пустая.</div>
+      </div>
+      <div class="budget-add">
+        <div class="block-title">Добавить запись</div>
+        <form id="budgetForm" class="budget-form" onsubmit="return addBudgetEntry()">
+          <input id="bDate" type="date" required />
+          <input id="bIncome" type="number" step="1" min="0" placeholder="Доход сегодня, ₽" required />
+          <input id="bToDebt" type="number" step="1" min="0" placeholder="В долг, ₽" required />
+          <select id="bBy" required>
+            <option value="" disabled selected>Кто внёс</option>
+            <option value="Никося">Никося</option>
+            <option value="Славик">Славик</option>
+            <option value="Оба">Оба</option>
+          </select>
+          <button type="submit" class="btn">Добавить</button>
+        </form>
+      </div>
+      <div class="budget-table">
+        <div class="block-title">График</div>
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Дата</th><th>День</th><th>Доход сегодня</th><th>В долг</th><th>Остаток</th><th>Кто внёс</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="budgetTbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Раздел: Хочу подарить -->
+    <section id="gifts-section" class="gifts hidden">
+      <!-- как в прошлой версии -->
+      <div class="g-header">
+        <h3>Хочу подарить — мои цели</h3>
+        <div class="g-note">Этот раздел виден только текущему пользователю.</div>
+      </div>
+      <div class="g-metrics">
+        <div class="card"><div class="card-title">Всего целей</div><div class="card-value" id="gCount">—</div></div>
+        <div class="card"><div class="card-title">Цели на сумму</div><div class="card-value" id="gTarget">—</div></div>
+        <div class="card"><div class="card-title">Накоплено</div><div class="card-value" id="gSaved">—</div></div>
+        <div class="card"><div class="card-title">Осталось</div><div class="card-value" id="gRemain">—</div></div>
+      </div>
+      <div class="g-add">
+        <div class="block-title">Добавить подарок</div>
+        <form id="gForm" class="g-form" onsubmit="return giftAdd()">
+          <input id="gName" type="text" placeholder="Подарок (название)" required />
+          <input id="gPrice" type="number" step="1" min="1" placeholder="Цена, ₽" required />
+          <input id="gLink" type="url" placeholder="Ссылка (необязательно)" />
+          <button type="submit" class="btn">Добавить</button>
+        </form>
+      </div>
+      <div class="g-list">
+        <div class="block-title">Мои цели</div>
+        <div id="giftsList"></div>
+      </div>
+      <div class="g-done">
+        <div class="block-title">Купленные</div>
+        <div id="giftsDone"></div>
+      </div>
+    </section>
+
+    <!-- Раздел: Нужно сделать (только для Славика) -->
+    <section id="personal-section" class="personal hidden">
+      <h3>Нужно сделать — мой список</h3>
+      <form id="pForm" class="p-form" onsubmit="return addPersonalTask()">
+        <input id="pText" type="text" placeholder="Задача" required />
+        <input id="pDue" type="date" required />
+        <button type="submit" class="btn">Добавить</button>
+      </form>
+      <div class="hint">В уведомления у Славика попадают невыполненные задачи с дедлайном ≤ сегодня.</div>
+      <ul id="pList" class="p-list"></ul>
+    </section>
+
+    <!-- Раздел: Памятка по уборке (accordion) -->
+    <section id="cleaning-section" class="cleaning hidden">
+      <h3>🧹 Памятка по уборке зон</h3>
+      <div class="accordion">
+        <details>
+          <summary>Кухня</summary>
+          <div class="acc-body">
+            <p><strong>Инвентарь:</strong> ведро с тёплой водой, универсальное чистящее средство, губка, тряпка из микрофибры, средство для стекла, щётка, пакет для мусора.</p>
+            <p><strong>Пошагово:</strong></p>
+            <ul>
+              <li>Убрать со столов и столешниц всё лишнее (кружки, тарелки, продукты).</li>
+              <li>Протереть столешницы с универсальным средством (углы и у плинтуса).</li>
+              <li>Плита: снять решётки/конфорки, замочить; поверхность протереть.</li>
+              <li>Мойка: убрать посуду, промыть мойку с моющим, кран/область вокруг/сток.</li>
+              <li>Холодильник (раз в неделю): протереть ручки, дверцу и верх.</li>
+              <li>Микроволновка/чайник: протереть снаружи, ручки и кнопки.</li>
+              <li>Пол: подмести/пропылесосить, вымыть (особенно плинтусы и под столом).</li>
+              <li>Мусор: вынести, поставить чистый пакет.</li>
+            </ul>
+          </div>
+        </details>
+
+        <details>
+          <summary>Ванная</summary>
+          <div class="acc-body">
+            <p><strong>Инвентарь:</strong> средство для сантехники, щётка, губка, тряпка, перчатки, ведро.</p>
+            <p><strong>Пошагово:</strong></p>
+            <ul>
+              <li>Унитаз: средство внутрь — 10 мин; крышка/сиденье — протереть; далее ёршиком.</li>
+              <li>Раковина: губка с чистящим, особое внимание — сток и кран.</li>
+              <li>Зеркало: средство для стекла + микрофибра, без разводов.</li>
+              <li>Ванна/душ: губкой с чистящим по поверхности, смыть тёплой водой.</li>
+              <li>Стиральная машина: протереть верх/панель, убрать пыль по бокам и сзади.</li>
+              <li>Пол: подмести и протереть (в том числе у плинтусов).</li>
+              <li>Мусор: вынести.</li>
+            </ul>
+          </div>
+        </details>
+
+        <details>
+          <summary>Прихожая</summary>
+          <div class="acc-body">
+            <p><strong>Инвентарь:</strong> веник/пылесос, тряпка, универсальное средство.</p>
+            <ul>
+              <li>Обувь: расставить ровно, лишнюю — в шкаф.</li>
+              <li>Поверхности: протереть полку для обуви, зеркало, комод.</li>
+              <li>Двери/ручки: протереть влажной тряпкой.</li>
+              <li>Пол: подмести/пропылесосить и вымыть (зона у входа — тщательнее).</li>
+            </ul>
+          </div>
+        </details>
+
+        <details>
+          <summary>Гостиная</summary>
+          <div class="acc-body">
+            <p><strong>Инвентарь:</strong> пылесос, микрофибра, средство для мебели, средство для стекла.</p>
+            <ul>
+              <li>Разобрать вещи и разложить по местам.</li>
+              <li>Пыль: все поверхности — полки, стол, тумба, ТВ, подоконники.</li>
+              <li>Окна/зеркала (раз в 1–2 недели): средство для стёкол + микрофибра.</li>
+              <li>Пол: пропылесосить и вымыть; внимание — под диваном и за мебелью.</li>
+              <li>Мягкая мебель: пройти щёткой-пылесосом.</li>
+            </ul>
+          </div>
+        </details>
+
+        <details>
+          <summary>Лоджия</summary>
+          <div class="acc-body">
+            <p><strong>Инвентарь:</strong> веник, тряпка, средство для стекла.</p>
+            <ul>
+              <li>Освободить проход.</li>
+              <li>Пыль: протереть поверхности, перила, подоконники.</li>
+              <li>Окна: средство для стёкол + микрофибра (по мере загрязнения).</li>
+              <li>Пол: подмести, вымыть.</li>
+            </ul>
+          </div>
+        </details>
+
+        <details>
+          <summary>Балкон</summary>
+          <div class="acc-body">
+            <p><strong>Инвентарь:</strong> веник, ведро с водой, тряпка, средство для стёкол.</p>
+            <ul>
+              <li>Освободить проход.</li>
+              <li>Пыль/паутина: пройти углы, плинтусы, стены.</li>
+              <li>Окна/дверь: средство для стёкол + микрофибра.</li>
+              <li>Пол: подмести и вымыть, особенно углы.</li>
+            </ul>
+          </div>
+        </details>
+
+        <details>
+          <summary>💡 Советы для Славика (чтобы было проще)</summary>
+          <div class="acc-body">
+            <ul>
+              <li>Всегда начинай сверху (полки, подоконники), потом пол.</li>
+              <li>Мойка/раковина/унитаз — отдельные тряпки/губки.</li>
+              <li>Если сомневаешься — универсальное средство + микрофибра.</li>
+              <li>Пыль убирай влажной тряпкой.</li>
+              <li>Не забывай углы и плинтуса — там собирается грязь.</li>
+            </ul>
+          </div>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <script src="advices.js"></script>
+  <script src="home.js"></script>
+</body>
+</html>
