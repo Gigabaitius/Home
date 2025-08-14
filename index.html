@@ -1,58 +1,30 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Вход</title>
-  <link rel="stylesheet" href="style.css">
-
-  <!-- Гард от циклов авто-редиректов -->
-  <script>
-    (function(){
-      var user = localStorage.getItem('user');
-      var params = new URL(location.href).searchParams;
-      // Если уже залогинен и это не явный выход — сразу на home.html
-      if (user && !params.has('logout')) {
-        location.replace('home.html');
-      }
-    })();
-  </script>
+  <meta charset="UTF-8" />
+  <title>Дом — вход</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
 </head>
-<body style="padding-top:0">
-  <div style="max-width:420px;margin:10vh auto;background:#fff;border-radius:14px;padding:20px;box-shadow:0 6px 18px rgba(0,0,0,.08);text-align:center">
-    <h2 style="color:#6f2dbd;margin:0 0 10px">Дом — вход</h2>
-    <p style="margin:0 0 16px;color:#666">Логин и пароль из вашего списка</p>
-
-    <form id="loginForm" onsubmit="return doLogin()" style="display:grid;gap:10px">
-      <input id="login" type="text" placeholder="Логин" required
-             style="border:1px solid #ddd;border-radius:10px;padding:12px;font-size:16px">
-      <input id="password" type="password" placeholder="Пароль" required
-             style="border:1px solid #ddd;border-radius:10px;padding:12px;font-size:16px">
-      <button type="submit" class="btn" style="padding:12px;font-size:16px">Войти</button>
+<body class="auth-body">
+  <main class="auth-card" role="main">
+    <h1 class="app-title">Дом</h1>
+    <form id="loginForm" class="auth-form" autocomplete="off">
+      <label class="field">
+        <span>Логин</span>
+        <input id="login" name="login" type="text" inputmode="text" required />
+      </label>
+      <label class="field">
+        <span>Пароль</span>
+        <input id="password" name="password" type="password" required />
+      </label>
+      <button type="submit" class="btn primary">Войти</button>
+      <p id="authError" class="error" aria-live="assertive"></p>
     </form>
+  </main>
 
-    <div id="err" style="color:#d32f2f;margin-top:10px;min-height:20px"></div>
-  </div>
-
-  <script>
-    function doLogin(){
-      var l = (document.getElementById('login').value||'').trim();
-      var p = document.getElementById('password').value||'';
-
-      // Разрешённые пары логин/пароль
-      var ok =
-          (l === 'Никося' && p === 'Никося123') ||
-          (l === 'Славик' && p === 'Славик123');
-
-      if(!ok){
-        document.getElementById('err').textContent = 'Неверный логин или пароль';
-        return false;
-      }
-      localStorage.setItem('user', l);
-      // безопасный переход на главную
-      window.location.replace('home.html');
-      return false;
-    }
-  </script>
+  <script src="script.js"></script>
+  <!-- подключи в home.html ПЕРЕД home.js -->
+<script src="advices.js"></script>
 </body>
 </html>
