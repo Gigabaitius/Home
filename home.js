@@ -1,5 +1,4 @@
 (function(){ 
-  // --- Guards ---
   const user = (function(){
     try { return JSON.parse(localStorage.getItem("user") || "null"); } catch { return null; }
   })();
@@ -7,11 +6,9 @@
     location.replace("index.html");
   }
 
-  // --- DOM refs ---
   const $ = (s, root=document) => root.querySelector(s);
   const $$ = (s, root=document) => Array.from(root.querySelectorAll(s));
 
-  // --- Utils ---
   const rub = (n) => new Intl.NumberFormat("ru-RU",{style:"currency",currency:"RUB",maximumFractionDigits:0}).format(Number(n||0));
   const today = new Date();
   const iso = (d=today) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString().slice(0,10);
@@ -23,7 +20,6 @@
   function readLS(key, def){ try{ return JSON.parse(localStorage.getItem(key) || JSON.stringify(def)); }catch{return def;} }
   function writeLS(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
 
-  // --- Header / Menu ---
   const currentUserEl = $("#currentUser");
   currentUserEl.textContent = user.name;
   $("#logoutBtn").addEventListener("click", () => window.Auth ? window.Auth.signOut() : (localStorage.removeItem("user"), location.replace("index.html")));
@@ -91,7 +87,6 @@
   });
   $("#logo").addEventListener("click", ()=> showSection("home"));
 
-  // --- Advice ---
   function updateAdvice(){
     try {
       const txt = window.getDailyAdvice(user.name);
@@ -101,7 +96,6 @@
     }
   }
 
-  // --- Weekly schedules ---
   const SCHEDULES = {
     "Никося": {
       1: [
@@ -273,23 +267,9 @@
     ]
   };
 
-  // --- Weekly reset (run on Sundays) ---
-  function ensureWeeklyReset(){
-    const key = "dom.week.reset.last";
-    const last = readLS(key, "");
-    const isSunday = (new Date()).getDay() === 0;
-    const todayIso = iso();
-    if (isSunday && last !== todayIso){
-      ["Никося","Славик"].forEach(u=>{
-        for (let d=1; d<=7; d++){
-          localStorage.removeItem(`dom.schedule.${u}.${d}.done`);
-        }
-      });
-      writeLS(key, todayIso);
-    }
-  }
+  // Больше не сбрасываем прогресс по воскресеньям
+  function ensureWeeklyReset(){}
 
-  // --- Home view: days, tasks per day, zones ---
   const daysContainer = $("#daysContainer");
   const dayPanel = $("#dayPanel");
   const dayTitle = $("#dayTitle");
@@ -389,7 +369,6 @@
     dayPanel.classList.add("hidden");
   }
 
-  // --- Daily tasks (today, shared across users) ---
   const dailyKey = ()=> `dom.dayTodos.${iso()}`;
   function readDaily(){
     return readLS(dailyKey(), []);
@@ -443,7 +422,6 @@
     updateBadge();
   });
 
-  // --- Mustdo (Славик) ---
   function mustdoKey(){ return `dom.mustdo.Славик`; }
   function readMustdo(){ return readLS(mustdoKey(), []); }
   function writeMustdo(v){ writeLS(mustdoKey(), v); }
@@ -488,7 +466,6 @@
     });
   }
 
-  // --- Meds (Ника, today) ---
   function medsKey(){ return `dom.meds.${iso()}.Никося`; }
   function readMeds(){ return readLS(medsKey(), []); }
   function writeMeds(v){ writeLS(medsKey(), v); }
@@ -529,7 +506,6 @@
     });
   }
 
-  // --- Expenses (shared) ---
   const FIXED_DEF = [
     ["Квартира",11000],
     ["Нейросети",4000],
@@ -613,7 +589,6 @@
     renderExpenses();
   });
 
-  // --- Budget (shared) ---
   function debtInitKey(){ return "dom.budget.initialDebt"; }
   function budgetEntriesKey(){ return "dom.budget.entries"; }
   function readDebt(){ return Number(localStorage.getItem(debtInitKey()) || 0); }
@@ -693,7 +668,6 @@
     $("#incToday").value=""; $("#payDebt").value="";
   });
 
-  // --- Gifts (per user) ---
   function goalsKey(){ return `dom.gifts.${user.name}.goals`; }
   function purchasedKey(){ return `dom.gifts.${user.name}.purchased`; }
   function readGoals(){ return readLS(goalsKey(), []); }
@@ -774,7 +748,6 @@
     renderGifts();
   });
 
-  // --- Cleaning memo (shared, editable, persisted) ---
   const CLEAN_KEY = "dom.cleaning.memo";
   const CLEAN_DEFAULT = [
     {
@@ -893,7 +866,7 @@
       });
 
       h.addEventListener("click", ()=>{ item.classList.toggle("open"); });
-      h.addEventListener("contextmenu",(e)=>{ // Переименовать раздел (по запросу)
+      h.addEventListener("contextmenu",(e)=>{
         e.preventDefault();
         const title = prompt("Название раздела:", sec.title);
         if (title===null) return;
@@ -910,7 +883,6 @@
     });
   }
 
-  // --- Notification badge ---
   function updateBadge(){
     let count = 0;
     count += readDaily().filter(x=> x.assignee===user.name && !x.done).length;
@@ -932,7 +904,7 @@
   }
   $("#bell").addEventListener("click", ()=> showSection("daily"));
 
-  // --- Cross-tab sync (видеть правки второго пользователя в другой вкладке) ---
+  // Расширенная синхронизация между вкладками, включая отметки дней
   window.addEventListener("storage", (e)=>{
     if (!e.key) return;
     if (e.key.startsWith("dom.expenses.") || e.key.startsWith("dom.budget.") || e.key.startsWith("dom.cleaning.")){
@@ -946,9 +918,12 @@
       renderMeds();
       updateBadge();
     }
+    if (e.key.startsWith("dom.schedule.")){
+      updateHomeView();
+      updateBadge();
+    }
   });
 
-  // --- Init ---
   ensureWeeklyReset();
   renderCleaning();
   updateHomeView();
