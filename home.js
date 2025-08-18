@@ -1,10 +1,10 @@
-(function(){
+(function(){ 
   // --- Guards ---
   const user = (function(){
     try { return JSON.parse(localStorage.getItem("user") || "null"); } catch { return null; }
   })();
   if (!user || !user.name || !["Никося","Славик"].includes(user.name)){
-    location.replace("index.html"); // строгая проверка
+    location.replace("index.html");
   }
 
   // --- DOM refs ---
@@ -104,7 +104,6 @@
   // --- Weekly schedules ---
   const SCHEDULES = {
     "Никося": {
-      // порядок кнопок: Пн..Вс
       1: [
         "08:00–08:30 — Подъём, умывание, зарядка",
         "08:30–09:00 — Завтрак",
@@ -281,7 +280,6 @@
     const isSunday = (new Date()).getDay() === 0;
     const todayIso = iso();
     if (isSunday && last !== todayIso){
-      // очистка прогресса задач по дням (для обоих пользователей)
       ["Никося","Славик"].forEach(u=>{
         for (let d=1; d<=7; d++){
           localStorage.removeItem(`dom.schedule.${u}.${d}.done`);
@@ -300,7 +298,7 @@
   const dayProgress = $("#dayProgress");
 
   function getDoneMap(u, d){
-    return readLS(`dom.schedule.${u}.${d}.done`, {}); // { index: true }
+    return readLS(`dom.schedule.${u}.${d}.done`, {});
   }
   function setDoneMap(u, d, map){
     writeLS(`dom.schedule.${u}.${d}.done`, map);
@@ -335,7 +333,6 @@
     dayTitle.textContent = `${weekdays[d-1]} — задачи`;
     dayTasksEl.innerHTML = "";
     const done = getDoneMap(user.name, d);
-    let doneCount = 0;
 
     tasks.forEach((t, idx)=>{
       const li = document.createElement("li");
@@ -351,7 +348,6 @@
         span.classList.toggle("done", cb.checked);
         renderDayProgress(d);
         if (isDayCompleted(user.name, d)){
-          // скрываем кнопку дня
           const b = daysContainer.querySelector(`.day-btn[data-day="${d}"]`);
           if (b) b.classList.add("hidden");
           dayNote.classList.remove("hidden");
@@ -360,7 +356,6 @@
       });
       li.append(cb, span);
       dayTasksEl.appendChild(li);
-      if (cb.checked) doneCount++;
     });
 
     function count(){
@@ -372,7 +367,7 @@
       dayProgress.textContent = `${count()} / ${tasks.length}`;
       dayNote.classList.toggle("hidden", !isDayCompleted(user.name,d));
     }
-    renderDayProgress = render; // update closure
+    renderDayProgress = render;
     render();
   }
   let renderDayProgress = ()=>{};
@@ -394,10 +389,10 @@
     dayPanel.classList.add("hidden");
   }
 
-  // --- Daily tasks (today) ---
+  // --- Daily tasks (today, shared across users) ---
   const dailyKey = ()=> `dom.dayTodos.${iso()}`;
   function readDaily(){
-    return readLS(dailyKey(), []); // {id,text,assignee,creator,done}
+    return readLS(dailyKey(), []);
   }
   function writeDaily(items){
     writeLS(dailyKey(), items);
@@ -450,7 +445,7 @@
 
   // --- Mustdo (Славик) ---
   function mustdoKey(){ return `dom.mustdo.Славик`; }
-  function readMustdo(){ return readLS(mustdoKey(), []); } // {id,text,dateISO,done}
+  function readMustdo(){ return readLS(mustdoKey(), []); }
   function writeMustdo(v){ writeLS(mustdoKey(), v); }
 
   function renderMustdo(){
@@ -495,21 +490,21 @@
 
   // --- Meds (Ника, today) ---
   function medsKey(){ return `dom.meds.${iso()}.Никося`; }
-  function readMeds(){ return readLS(medsKey(), []); } // {id,name,time,taken}
+  function readMeds(){ return readLS(medsKey(), []); }
   function writeMeds(v){ writeLS(medsKey(), v); }
 
   function renderMeds(){
     if (user.name!=="Никося") return;
     const list = $("#medsList"); list.innerHTML="";
-    for (const t of readMeds()){
+    const items = readMeds();
+    for (const t of items){
       const li = document.createElement("li");
       const cb = document.createElement("input"); cb.type="checkbox"; cb.checked=!!t.taken;
       const span = document.createElement("span"); span.textContent = `${t.time} — ${t.name}`;
       if (cb.checked) span.classList.add("done");
       cb.addEventListener("change", ()=>{
-        t.taken = cb.checked; writeMeds(readMeds()); // re-read for immutability
-        const items = readMeds().map(x=> x.id===t.id ? {...x, taken: cb.checked} : x);
-        writeMeds(items);
+        const updated = readMeds().map(x=> x.id===t.id ? {...x, taken: cb.checked} : x);
+        writeMeds(updated);
         span.classList.toggle("done", cb.checked);
         updateBadge();
       });
@@ -534,7 +529,7 @@
     });
   }
 
-  // --- Expenses ---
+  // --- Expenses (shared) ---
   const FIXED_DEF = [
     ["Квартира",11000],
     ["Нейросети",4000],
@@ -549,14 +544,13 @@
   function readFixed(){
     let m = readLS(fixedKey(), null);
     if (!m){ m = Object.fromEntries(FIXED_DEF.map(([n,_])=>[n,false])); writeLS(fixedKey(), m); }
-    return m; // {name: paidBool}
+    return m;
   }
   function writeFixed(v){ writeLS(fixedKey(), v); }
-  function readVar(){ return readLS(varKey(), []); } // {id,name,amount,type,dateISO}
+  function readVar(){ return readLS(varKey(), []); }
   function writeVar(v){ writeLS(varKey(), v); }
 
   function renderExpenses(){
-    // fixed
     const fixed = readFixed();
     const fixedList = $("#fixedList"); fixedList.innerHTML="";
     for (const [name, amount] of FIXED_DEF){
@@ -564,17 +558,17 @@
       const left = document.createElement("div"); left.textContent = `${name} — ${rub(amount)}`;
       const btn = document.createElement("button"); btn.className="btn";
       btn.textContent = fixed[name] ? "Оплачено" : "Отметить оплату";
-      if (fixed[name]) btn.classList.add("primary"), btn.classList.add("paid"); // визуал
+      if (fixed[name]) btn.classList.add("primary"), btn.classList.add("paid");
       btn.addEventListener("click", ()=>{
-        fixed[name] = !fixed[name];
-        writeFixed(fixed);
+        const f = readFixed();
+        f[name] = !f[name];
+        writeFixed(f);
         renderExpenses();
       });
       li.append(left, btn);
       fixedList.appendChild(li);
     }
 
-    // var list
     const ul = $("#varList"); ul.innerHTML = "";
     for (const it of readVar()){
       const li = document.createElement("li");
@@ -590,19 +584,14 @@
       ul.appendChild(li);
     }
 
-    // summary
-    const fixedPaidSum = FIXED_DEF.filter(([n,_])=>fixed[n]).reduce((s,[_,a])=>s+a,0);
+    const fixedPaidSum = FIXED_DEF.filter(([n,_])=>readFixed()[n]).reduce((s,[_,a])=>s+a,0);
     const varAll = readVar();
     const varSum = varAll.reduce((s,x)=>s+Number(x.amount||0),0);
     const varBad = varAll.filter(x=>x.type==="лишняя").reduce((s,x)=>s+Number(x.amount||0),0);
     const total = fixedPaidSum + varSum;
 
     const sum = $("#expSummary"); sum.innerHTML="";
-    const kpi = (label,val)=>{
-      const d = document.createElement("div"); d.className="kpi";
-      d.innerHTML = `<strong>${rub(val)}</strong><span class="muted">${label}</span>`;
-      return d;
-    };
+    const kpi = (label,val)=>{ const d = document.createElement("div"); d.className="kpi"; d.innerHTML = `<strong>${rub(val)}</strong><span class="muted">${label}</span>`; return d; };
     sum.append(
       kpi("Всего за месяц", total),
       kpi("Обязательные оплачено", fixedPaidSum),
@@ -624,12 +613,12 @@
     renderExpenses();
   });
 
-  // --- Budget ---
+  // --- Budget (shared) ---
   function debtInitKey(){ return "dom.budget.initialDebt"; }
   function budgetEntriesKey(){ return "dom.budget.entries"; }
   function readDebt(){ return Number(localStorage.getItem(debtInitKey()) || 0); }
   function writeDebt(v){ localStorage.setItem(debtInitKey(), String(Math.max(0,Number(v)||0))); }
-  function readEntries(){ return readLS(budgetEntriesKey(), []); } // [{dateISO,weekday,inc,inDebt,balance,who}]
+  function readEntries(){ return readLS(budgetEntriesKey(), []); }
   function writeEntries(v){ writeLS(budgetEntriesKey(), v); }
 
   function renderBudget(){
@@ -637,7 +626,6 @@
     $("#debtInfo").textContent = readDebt() ? `Текущий долг: ${rub(readDebt())}` : "Долг не задан";
 
     const entries = readEntries();
-    // table
     const tbody = $("#budgetTable tbody"); tbody.innerHTML="";
     for (const e of entries){
       const tr = document.createElement("tr");
@@ -651,7 +639,7 @@
       `;
       tbody.appendChild(tr);
     }
-    // summary
+
     const init = readDebt();
     const lastBal = entries.length ? entries[entries.length-1].balance : init;
     const paid = Math.max(0, init - lastBal);
@@ -659,11 +647,7 @@
     const planDate = entries.length ? entries[entries.length-1].dateISO : "—";
 
     const wrap = $("#budgetSummary"); wrap.innerHTML="";
-    const block = (label,val)=>{
-      const d = document.createElement("div"); d.className="kpi";
-      d.innerHTML = `<strong>${val}</strong><span class="muted">${label}</span>`;
-      return d;
-    };
+    const block = (label,val)=>{ const d = document.createElement("div"); d.className="kpi"; d.innerHTML = `<strong>${val}</strong><span class="muted">${label}</span>`; return d; };
     wrap.append(
       block("Остаток долга", rub(lastBal)),
       block("Выплачено", rub(paid)),
@@ -675,7 +659,6 @@
   $("#saveDebt").addEventListener("click", ()=>{
     const v = Number($("#debtInput").value);
     writeDebt(v);
-    // сброс пересчёта балансов относительно нового долга
     const entries = readEntries();
     let balance = readDebt();
     for (const e of entries){
@@ -713,16 +696,15 @@
   // --- Gifts (per user) ---
   function goalsKey(){ return `dom.gifts.${user.name}.goals`; }
   function purchasedKey(){ return `dom.gifts.${user.name}.purchased`; }
-  function readGoals(){ return readLS(goalsKey(), []); } // {id,name,price,link,saved}
+  function readGoals(){ return readLS(goalsKey(), []); }
   function writeGoals(v){ writeLS(goalsKey(), v); }
-  function readPurchased(){ return readLS(purchasedKey(), []); } // {id,name,price,link,dateISO}
+  function readPurchased(){ return readLS(purchasedKey(), []); }
   function writePurchased(v){ writeLS(purchasedKey(), v); }
 
   function renderGifts(){
     const goals = readGoals();
     const purchased = readPurchased();
 
-    // goals list
     const gl = $("#goalsList"); gl.innerHTML="";
     for (const g of goals){
       const li = document.createElement("li");
@@ -733,20 +715,23 @@
       const add = document.createElement("button"); add.className="btn"; add.textContent="Отложить 500 ₽";
       const del = document.createElement("button"); del.className="del"; del.textContent="✕";
       add.addEventListener("click", ()=>{
-        g.saved = Number(g.saved||0) + 500;
-        if (g.saved >= g.price){
-          // move to purchased
-          const rest = goals.filter(x=>x.id!==g.id);
-          writeGoals(rest);
-          const pur = readPurchased(); pur.push({ id: g.id, name:g.name, price:g.price, link:g.link, dateISO: iso() });
-          writePurchased(pur);
-        } else {
-          writeGoals(goals);
+        const all = readGoals();
+        const idx = all.findIndex(x=>x.id===g.id);
+        if (idx>-1){
+          all[idx].saved = Number(all[idx].saved||0) + 500;
+          if (all[idx].saved >= all[idx].price){
+            const rest = all.filter(x=>x.id!==g.id);
+            writeGoals(rest);
+            const pur = readPurchased(); pur.push({ id: g.id, name:g.name, price:g.price, link:g.link, dateISO: iso() });
+            writePurchased(pur);
+          } else {
+            writeGoals(all);
+          }
         }
         renderGifts();
       });
       del.addEventListener("click", ()=>{
-        writeGoals(goals.filter(x=>x.id!==g.id));
+        writeGoals(readGoals().filter(x=>x.id!==g.id));
         renderGifts();
       });
       right.append(add, del);
@@ -754,7 +739,6 @@
       gl.appendChild(li);
     }
 
-    // purchased list
     const pl = $("#purchasedList"); pl.innerHTML="";
     for (const p of purchased){
       const li = document.createElement("li");
@@ -763,7 +747,6 @@
       pl.appendChild(li);
     }
 
-    // summary
     const summary = $("#giftsSummary"); summary.innerHTML="";
     const totalGoals = goals.length;
     const totalPrices = goals.reduce((s,x)=>s+Number(x.price||0),0);
@@ -791,8 +774,9 @@
     renderGifts();
   });
 
-  // --- Cleaning memo (accordion) ---
-  const CLEAN_SECTIONS = [
+  // --- Cleaning memo (shared, editable, persisted) ---
+  const CLEAN_KEY = "dom.cleaning.memo";
+  const CLEAN_DEFAULT = [
     {
       title:"Кухня",
       steps:[
@@ -857,19 +841,71 @@
       ]
     }
   ];
+  function loadClean(){ return readLS(CLEAN_KEY, CLEAN_DEFAULT); }
+  function saveClean(v){ writeLS(CLEAN_KEY, v); }
+
   function renderCleaning(){
+    const data = loadClean();
     const acc = $("#accordion"); acc.innerHTML="";
-    CLEAN_SECTIONS.forEach((sec, idx)=>{
+    data.forEach((sec, idx)=>{
       const item = document.createElement("div"); item.className="acc-item";
       const h = document.createElement("button"); h.className="acc-header"; h.type="button"; h.textContent = sec.title;
       const c = document.createElement("div"); c.className="acc-content";
       const ul = document.createElement("ul");
-      sec.steps.forEach(s=>{ const li=document.createElement("li"); li.textContent=s; ul.appendChild(li); });
-      c.appendChild(ul);
-      h.addEventListener("click", ()=>{
-        item.classList.toggle("open");
+
+      sec.steps.forEach((s, sIdx)=>{
+        const li=document.createElement("li");
+        const span = document.createElement("span");
+        span.textContent = s;
+        span.title = "Двойной клик: редактировать";
+        span.addEventListener("dblclick", ()=>{
+          const text = prompt("Изменить шаг:", span.textContent);
+          if (text===null) return;
+          const copy = loadClean();
+          copy[idx].steps[sIdx] = text.trim();
+          saveClean(copy);
+          renderCleaning();
+        });
+        const del = document.createElement("button");
+        del.className="del";
+        del.textContent="✕";
+        del.title="Удалить шаг";
+        del.addEventListener("click", ()=>{
+          const copy = loadClean();
+          copy[idx].steps.splice(sIdx,1);
+          saveClean(copy);
+          renderCleaning();
+        });
+        li.append(span, del);
+        ul.appendChild(li);
       });
+
+      const addBtn = document.createElement("button");
+      addBtn.className="btn";
+      addBtn.textContent = "Добавить шаг";
+      addBtn.addEventListener("click", ()=>{
+        const text = prompt("Новый шаг:");
+        if (!text) return;
+        const copy = loadClean();
+        copy[idx].steps.push(text.trim());
+        saveClean(copy);
+        renderCleaning();
+      });
+
+      h.addEventListener("click", ()=>{ item.classList.toggle("open"); });
+      h.addEventListener("contextmenu",(e)=>{ // Переименовать раздел (по запросу)
+        e.preventDefault();
+        const title = prompt("Название раздела:", sec.title);
+        if (title===null) return;
+        const copy = loadClean();
+        copy[idx].title = title.trim() || copy[idx].title;
+        saveClean(copy);
+        renderCleaning();
+      });
+
       if (idx===0) item.classList.add("open");
+      c.appendChild(ul);
+      c.appendChild(addBtn);
       item.append(h,c); acc.appendChild(item);
     });
   }
@@ -877,13 +913,10 @@
   // --- Notification badge ---
   function updateBadge(){
     let count = 0;
-    // daily mine (today)
     count += readDaily().filter(x=> x.assignee===user.name && !x.done).length;
-    // mustdo overdue (Славик)
     if (user.name==="Славик"){
       count += readMustdo().filter(x=> !x.done && new Date(x.dateISO) <= new Date(iso())).length;
     }
-    // meds today (Ника)
     if (user.name==="Никося"){
       count += readMeds().filter(x=> !x.taken).length;
     }
@@ -899,9 +932,25 @@
   }
   $("#bell").addEventListener("click", ()=> showSection("daily"));
 
+  // --- Cross-tab sync (видеть правки второго пользователя в другой вкладке) ---
+  window.addEventListener("storage", (e)=>{
+    if (!e.key) return;
+    if (e.key.startsWith("dom.expenses.") || e.key.startsWith("dom.budget.") || e.key.startsWith("dom.cleaning.")){
+      renderExpenses();
+      renderBudget();
+      renderCleaning();
+    }
+    if (e.key.startsWith("dom.dayTodos.") || e.key.startsWith("dom.mustdo.") || e.key.startsWith("dom.meds.")){
+      renderDaily();
+      renderMustdo();
+      renderMeds();
+      updateBadge();
+    }
+  });
+
   // --- Init ---
   ensureWeeklyReset();
-  renderCleaning(); // prepare once
+  renderCleaning();
   updateHomeView();
   renderDaily();
   if (user.name==="Славик") renderMustdo();
@@ -911,7 +960,6 @@
   renderGifts();
   updateBadge();
 
-  // expose for manual navigation (optional)
   window.DomApp = { showSection };
 
 })();
